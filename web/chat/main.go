@@ -42,9 +42,9 @@ func main() {
 	var addr = flag.String("addr", ":8080", "The addr of the application.")
 	flag.Parse() // parse the flags
 	config := NewConfig("config/conf.json")
-	gomniauth.SetSecurityKey("PUT YOUR AUTH KEY HERE")
+	gomniauth.SetSecurityKey(config.Site.SecurityKey)
 	cgithub := config.Auth.Github
-	gomniauth.WithProviders(github.New(cgithub.Key, cgithub.Secret, "http://localhost:8080/auth/callback/github"))
+	gomniauth.WithProviders(github.New(cgithub.Key, cgithub.Secret, config.Site.Host+"/auth/callback/github"))
 	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 	http.Handle("/", &templateHandler{filename: "index.html"})

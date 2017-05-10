@@ -15,36 +15,51 @@ ul {list-style: none;}
         </form>
         Let's chat (from template)
 
-          <script  src="http://{{.Host}}/assets/js/jquery-3.2.1.min.js"/>
-   </script>
-          <script>
+          <script  src="http://{{.Host}}/assets/js/jquery-3.2.1.min.js">
+</script>
+   <script>
+
       $(function(){
+
         var socket = null;
         var msgBox = $("#chatbox textarea");
         var messages = $("#messages");
+
         $("#chatbox").submit(function(){
-             if (!msgBox.val()) return false;
-             if (!socket) {
-                                alert("Error: There is no socket connection.");
-                                return false;
-                              }
-             socket.send(msgBox.val());
-           console.log("send msg"); 
-             msgBox.val("");
-             return false;
+
+          if (!msgBox.val()) return false;
+          if (!socket) {
+            alert("Error: There is no socket connection.");
+            return false;
+          }
+
+          socket.send(JSON.stringify({"Message": msgBox.val()}));
+          msgBox.val("");
+          return false;
+
         });
+
         if (!window["WebSocket"]) {
-          alert("Error: Your browser does not support web  sockets.")
+          alert("Error: Your browser does not support web sockets.")
         } else {
-            socket = new WebSocket("ws://{{.Host}}/room");
-           socket.onclose = function() {
-                              alert("Connection has been closed.");
-                            }
-           socket.onmessage = function(e) {
-                              messages.append($("<li>").text(e.data));
-           } }
+          socket = new WebSocket("ws://{{.Host}}/room");
+          socket.onclose = function() {
+            alert("Connection has been closed.");
+          }
+          socket.onmessage = function(e) {
+            var msg = JSON.parse(e.data);
+            var when = msg.When.substring(0,10) +" "+ msg.When.substring(11,19)
+            messages.append(
+              $("<li>").append(
+                $("<strong>").text(msg.Name +": "),
+                $("<span>").text(msg.Message+" "+ when)
+              )
+            );
+          }
+        }
+
       });
-       </script>
-       
+   </script>
+
     </body>
 </html>

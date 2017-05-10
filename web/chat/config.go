@@ -15,8 +15,14 @@ type provider struct {
 	Github keyMap `json:"github"`
 }
 
+type site struct {
+	SecurityKey string `json:"securityKey"`
+	Host        string `json:"host"`
+}
+
 type configration struct {
 	Auth provider `json:"auth"`
+	Site site     `json:"site"`
 }
 
 func NewConfig(path string) *configration {
