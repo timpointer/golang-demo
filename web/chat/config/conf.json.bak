@@ -1,0 +1,8 @@
+{
+    "auth" : {
+        "github":{
+            "key":"fda6580151fac19748b6",
+            "secret":"6161d0f51a78a16a152b2f61ae6d6c3cc80e6827"
+        }
+    }
+}
