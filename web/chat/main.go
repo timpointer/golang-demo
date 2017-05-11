@@ -20,6 +20,7 @@ type templateHandler struct {
 	once     sync.Once
 	filename string
 	templ    *template.Template
+	config   *configration
 }
 
 func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +28,7 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t.templ = template.Must(template.ParseFiles(filepath.Join("templates", t.filename)))
 	//})
 	data := map[string]interface{}{
-		"Host": r.Host,
+		"Host": t.config.Site.Host,
 	}
 	if authCookie, err := r.Cookie("auth"); err == nil {
 
@@ -38,19 +39,35 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t.templ.Execute(w, data)
 }
 
+type handlerBuilder struct {
+	config *configration
+}
+
+func (b *handlerBuilder) New(filename string) http.Handler {
+	return &templateHandler{filename: filename, config: b.config}
+}
+
 func main() {
 	var addr = flag.String("addr", ":8080", "The addr of the application.")
-	flag.Parse() // parse the flags
-	config := NewConfig("config/conf.json")
+	flag.Parse()                            // parse the flags
+	config := NewConfig("config/conf.json") // get config from config file
+
+	// init social Oauth client
 	gomniauth.SetSecurityKey(config.Site.SecurityKey)
 	cgithub := config.Auth.Github
-	gomniauth.WithProviders(github.New(cgithub.Key, cgithub.Secret, config.Site.Host+"/auth/callback/github"))
+	gomniauth.WithProviders(github.New(cgithub.Key, cgithub.Secret, "http://"+config.Site.Host+"/auth/callback/github"))
+
+	// make chat room
 	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
-	http.Handle("/", &templateHandler{filename: "index.html"})
-	http.Handle("/login", &templateHandler{filename: "login.html"})
+	builder := &handlerBuilder{config: config}
+
+	http.Handle("/", builder.New("index.html"))
+	http.Handle("/login", builder.New("login.html"))
+	http.HandleFunc("/logout", logOutHandler)
+
 	http.HandleFunc("/auth/", loginHandler)
-	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
+	http.Handle("/chat", MustAuth(builder.New("chat.html")))
 	http.Handle("/room", r)
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets/"))))
 	// get the room going

@@ -5,21 +5,45 @@
 input {display: block;}
 ul {list-style: none;}
 </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+     <style>
+      ul#messages        { list-style: none; }
+      ul#messages li     { margin-bottom: 2px; }
+      ul#messages li img { margin-right: 10px; }
+    </style>
     </head>
     <body>
-        <ul id="messages"></ul>
-        <form id="chatbox">
-            {{.UserData.name}}:<br/>
-            <textarea></textarea>
-            <input type="submit" value="Send" />
-        </form>
-        Let's chat (from template)
+        
+    <div class="container">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <ul id="messages"></ul>
+        </div>
+      </div>
+      <form id="chatbox" role="form">
+        <div class="form-group">
+          <label for="message">Send a message as {{.UserData.name}}</label> or <a href="/logout">Sign out</a>
+          <textarea id="message" class="form-control"></textarea>
+        </div>
+        <input id="submit" type="submit" value="Send" class="btn btn-default" />
+      </form>
+    </div>
 
+ 
           <script  src="http://{{.Host}}/assets/js/jquery-3.2.1.min.js">
 </script>
    <script>
 
+var username = "{{.UserData.name}}"
+
       $(function(){
+
+        $("#message").keypress(function(event) {
+            if (event.which == 13) {
+                $("#submit").click()
+                return false
+            }
+        })
 
         var socket = null;
         var msgBox = $("#chatbox textarea");
@@ -49,12 +73,25 @@ ul {list-style: none;}
           socket.onmessage = function(e) {
             var msg = JSON.parse(e.data);
             var when = msg.When.substring(0,10) +" "+ msg.When.substring(11,19)
+              if (msg.Name == username) {
+            messages.append(
+                $("<li>").css({width:"100%"}).append(
+                    $("<div>").addClass("text-right").append(
+                        $("<span>").text(msg.Message).css({"margin-right":"10px"}),
+                  $("<img>").css({width:50,verticalAlign:"middle"}).attr("src", msg.AvatarURL).attr("title", msg.Name)
+                    )
+                )
+            );
+
+              } else {
+
             messages.append(
               $("<li>").append(
-                $("<strong>").text(msg.Name +": "),
-                $("<span>").text(msg.Message+" "+ when)
-              )
-            );
+                  $("<img>").css({width:50,verticalAlign:"middle"}).attr("src", msg.AvatarURL).attr("title", msg.Name),
+                $("<span>").text(msg.Message)
+              ));
+
+              }
           }
         }
 

@@ -16,11 +16,10 @@ type authHandler struct {
 }
 
 func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("auth")
-	if err == http.ErrNoCookie {
+	cookie, err := r.Cookie("auth")
+	if err == http.ErrNoCookie || cookie.Value == "" {
 		// not authenticated
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(http.StatusTemporaryRedirect)
+		redirect(w, "/login")
 		return
 	}
 	if err != nil {
@@ -33,6 +32,21 @@ func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func MustAuth(handler http.Handler) http.Handler {
 	return &authHandler{next: handler}
+}
+
+func logOutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:   "auth",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
+	redirect(w, "/chat")
+}
+
+func redirect(w http.ResponseWriter, path string) {
+	w.Header().Set("Location", path)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +66,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Error when trying to GetBeginAuthURL for %s: %s", provider, err), http.StatusInternalServerError)
 			return
 		}
-		w.Header().Set("Location", loginUrl)
-		w.WriteHeader(http.StatusTemporaryRedirect)
+		redirect(w, loginUrl)
 	case "callback":
 		provider, err := gomniauth.Provider(provider)
 		if err != nil {
@@ -75,15 +88,14 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%v", user.Name())
 		authCookieValue := objx.New(
 			map[string]interface{}{
-				"name": user.Nickname(),
+				"name":       user.Nickname(),
+				"avatar_url": user.AvatarURL(),
 			}).MustBase64()
 		http.SetCookie(w, &http.Cookie{Name: "auth",
 			Value: authCookieValue,
 			Path:  "/"})
 
-		w.Header().Set("Location", "/chat")
-		w.WriteHeader(http.StatusTemporaryRedirect)
-
+		redirect(w, "/chat")
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(w, "Auth action %s not supported", action)
