@@ -16,6 +16,13 @@ import (
 	"github.com/timpointer/project/web/trace"
 )
 
+// set the active Avatar implementation
+var avatars Avatar = TryAvatars{
+	UseFileSystemAvatar,
+	UseAuthAvatar,
+	UseGravatar,
+}
+
 type templateHandler struct {
 	once     sync.Once
 	filename string
@@ -58,7 +65,7 @@ func main() {
 	gomniauth.WithProviders(github.New(cgithub.Key, cgithub.Secret, "http://"+config.Site.Host+"/auth/callback/github"))
 
 	// make chat room
-	r := newRoom(UseGravatar)
+	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 	builder := &handlerBuilder{config: config}
 
@@ -68,8 +75,14 @@ func main() {
 
 	http.HandleFunc("/auth/", loginHandler)
 	http.Handle("/chat", MustAuth(builder.New("chat.html")))
+
+	// upload user avatar
+	http.Handle("/upload", MustAuth(builder.New("upload.html")))
+	http.HandleFunc("/uploader", uploaderHandler)
+
 	http.Handle("/room", r)
-	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets/"))))
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))
+	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./avatars/"))))
 	// get the room going
 	go r.run()
 	// start the web server

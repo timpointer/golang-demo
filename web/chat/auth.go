@@ -2,14 +2,30 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"strings"
 
 	"github.com/stretchr/gomniauth"
+	gominiauthcommon "github.com/stretchr/gomniauth/common"
 	"github.com/stretchr/objx"
 )
+
+type ChatUser interface {
+	UniqueID() string
+	AvatarURL() string
+}
+
+type chatUser struct {
+	gominiauthcommon.User
+	uniqueID string
+}
+
+func (u chatUser) UniqueID() string {
+	return u.uniqueID
+}
 
 type authHandler struct {
 	next http.Handler
@@ -50,7 +66,6 @@ func redirect(w http.ResponseWriter, path string) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("login handler")
 	segs := strings.Split(r.URL.Path, "/")
 	action := segs[2]
 	provider := segs[3]
@@ -83,14 +98,14 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Error when trying to get user from %s: %s", provider, err), http.StatusInternalServerError)
 			return
 		}
-
-		log.Printf("%v", user.Nickname())
-		log.Printf("%v", user.Name())
+		chatUser := &chatUser{User: user}
+		chatUser.uniqueID = getUserId(user.Email())
+		avatarURL, err := avatars.GetAvatarURL(chatUser)
 		authCookieValue := objx.New(
 			map[string]interface{}{
+				"userid":     getUserId(user.Email()),
 				"name":       user.Nickname(),
-				"avatar_url": user.AvatarURL(),
-				"email":      user.Email(),
+				"avatar_url": avatarURL,
 			}).MustBase64()
 		http.SetCookie(w, &http.Cookie{Name: "auth",
 			Value: authCookieValue,
@@ -101,4 +116,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(w, "Auth action %s not supported", action)
 	}
+}
+
+func getUserId(email string) string {
+	m := md5.New()
+	io.WriteString(m, strings.ToLower(email))
+	return fmt.Sprintf("%x", m.Sum(nil))
 }
