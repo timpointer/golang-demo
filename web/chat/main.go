@@ -58,7 +58,7 @@ func main() {
 	gomniauth.WithProviders(github.New(cgithub.Key, cgithub.Secret, "http://"+config.Site.Host+"/auth/callback/github"))
 
 	// make chat room
-	r := newRoom()
+	r := newRoom(UseGravatar)
 	r.tracer = trace.New(os.Stdout)
 	builder := &handlerBuilder{config: config}
 
