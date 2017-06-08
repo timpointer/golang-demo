@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/objx"
-	"github.com/timpointer/project/web/trace"
+	"github.com/timpointer/golang-demo/web/trace"
 )
 
 const (

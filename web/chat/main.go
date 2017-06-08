@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/gomniauth"
 	"github.com/stretchr/gomniauth/providers/github"
 	"github.com/stretchr/objx"
-	"github.com/timpointer/project/web/trace"
+	"github.com/timpointer/golang-demo/web/trace"
 )
 
 // set the active Avatar implementation
