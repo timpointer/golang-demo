@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 import "github.com/robfig/cron"
+import "time"
 
 func main() {
 	c := cron.New()
@@ -17,7 +18,7 @@ func main() {
 
 	// Inspect the cron job entries' next and previous run times.
 	inspect(c.Entries())
-
+	time.Sleep(time.Duration(60 * time.Second))
 	c.Stop() // Stop the scheduler (does not stop any jobs already running).
 }
 
