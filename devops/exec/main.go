@@ -8,7 +8,7 @@ import (
 
 func main() {
 	paras := []string{"1", "2"}
-	cmd := exec.Command("./test/tes", paras...)
+	cmd := exec.Command("./test/test", paras...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
