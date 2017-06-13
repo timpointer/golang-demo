@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 
+	"flag"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -12,6 +14,8 @@ const (
 )
 
 func main() {
+	command := flag.String("command", "default", "choose which command do you want to execute")
+
 	db, err := sql.Open("sqlite3", sqliteConnStr)
 	if err != nil {
 		log.Fatal(err)
@@ -31,4 +35,13 @@ func main() {
 			return
 		}
 	}
+
+	switch *command {
+	case "insert":
+		insert(db)
+	}
+}
+
+func insert(db *sql.DB) {
+
 }

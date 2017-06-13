@@ -41,7 +41,7 @@ func main() {
 	unittime := t.Unix()
 	fmt.Printf("unitime %d\n", unittime)
 
-	t = t.AddDate(0, 0, 7)
+	t = t.AddDate(0, 0, 3322)
 	fmt.Println(t)
 
 	unittime = t.Unix()
