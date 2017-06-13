@@ -18,7 +18,23 @@ const (
 
 func main() {
 	command := flag.String("command", "default", "choose which command do you want to execute")
+	store := flag.String("store", "shanghai", "store params")
+	starttime := flag.String("starttime", "2017-1-3", "starttime params")
+	endtime := flag.String("endtime", "2017-2-3", "endtime params")
 	flag.Parse()
+
+	const shortForm = "2006-1-2"
+	start, err := time.Parse(shortForm, *starttime)
+	log.Printf("starttime %d\n", start.Unix())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	end, err := time.Parse(shortForm, *endtime)
+	log.Printf("endtime %d\n", end.Unix())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	db, err := sql.Open("sqlite3", sqliteConnStr)
 	if err != nil {
@@ -41,18 +57,23 @@ func main() {
 	case "insert":
 		log.Println("insert db")
 
-		for i := 0; i < 10; i++ {
-			_, err := insert(db, 1, randomdata.SillyName(), chooseStore(), chooseChannel(), chooseCardholder(), chooseActivity(), 1232342)
+		for i := 0; i < 1000; i++ {
+			_, err := insert(db, 1, randomdata.SillyName(), chooseStore(), chooseChannel(), chooseCardholder(), chooseActivity(), chooseTime())
 			if err != nil {
 				log.Printf("insert: %s\n", err)
 				return
 			}
 		}
-
+	case "report":
+		report(db, start, end, *store)
+	case "reportytd":
+		reportYTD(db, *store)
+	case "reportcw":
+		reportCW(db, 1, *store)
 	}
 }
 
-func insert(db *sql.DB, userid int, name, storepanel, channel, cardholder, campaign string, data int) (sql.Result, error) {
+func insert(db *sql.DB, userid int, name, storepanel, channel, cardholder, campaign string, data int64) (sql.Result, error) {
 	return db.Exec("INSERT INTO user_registration  (userid ,name  ,storepanel  ,channel ,cardholder ,campaign  ,date  )VALUES (?,?,?,?,?,?,?);",
 		userid, name, storepanel, channel, cardholder, campaign, data)
 }
@@ -64,11 +85,11 @@ var activites []string
 var t time.Time
 
 func init() {
-	stores = []string{"storeshanghai", "storebeijing", "storehangzhou"}
+	stores = []string{"shanghai", "beijing", "hangzhou"}
 	channels = []string{"local", "web", "wechat", "ali"}
 	cardholders = []string{"MP", "NMP"}
 	activites = []string{"activity1", "activity2", "activity3", "activity4"}
-	t = time.Date(2016, 0, 0, 0, 0, 0, 0, time.UTC)
+	t = time.Now()
 	rand.Seed(42) // Try changing this number!
 }
 
@@ -86,4 +107,10 @@ func chooseCardholder() string {
 
 func chooseActivity() string {
 	return activites[rand.Intn(len(activites))]
+}
+
+func chooseTime() int64 {
+	nt := t.AddDate(0, 0, rand.Intn(1000)-1000)
+	log.Println(nt)
+	return nt.Unix()
 }
