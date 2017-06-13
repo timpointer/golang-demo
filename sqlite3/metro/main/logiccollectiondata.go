@@ -29,6 +29,24 @@ func insertDumpData(db *sql.DB) error {
 }
 
 func collectionReportData(db *sql.DB) error {
+	maps := map[string][]string{
+		"storepanel": nil,
+		"channel":    nil,
+		"cardholder": nil,
+		"campaint":   nil,
+	}
+	fmt.Println(maps)
+	for key := range maps {
+		list, err := selectOptions(db, key)
+		if err != nil {
+			return fmt.Errorf("selectOptions storepanel:%v", err)
+		}
+		maps[key] = list
+	}
+
+	for store := range maps["storepanel"] {
+		fmt.Println(store)
+	}
 	// todo
 	return nil
 }
@@ -40,6 +58,23 @@ func splitByMonth(times []int64) map[string][]int64 {
 		m[monthStr] = append(m[monthStr], t)
 	}
 	return m
+}
+
+func selectOptions(db *sql.DB, colmun string) ([]string, error) {
+	rows, err := db.Query("select DISTINCT ? from user_registration", colmun)
+	if err != nil {
+		return nil, err
+	}
+	list := []string{}
+	for rows.Next() {
+		var s string
+		err := rows.Scan(&s)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, s)
+	}
+	return list, err
 }
 
 func insert(db *sql.DB, userid int, name, storepanel, channel, cardholder, campaign string, data int64) (sql.Result, error) {
