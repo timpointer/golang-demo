@@ -30,16 +30,28 @@ func reportYTD(db *sql.DB, store string) (*dataRow, error) {
 func reportCW(db *sql.DB, cw int, store string) (*newCardHolderRigistration, error) {
 	t := time.Now()
 	tCW := ttime.FirstDayOfISOWeek(t.Year(), cw, time.UTC)
-	tCWEnd := tCW.AddDate(0, 0, 7)
-	row, err := report(db, tCW, tCWEnd, store)
+	endTCW := tCW.AddDate(0, 0, 7)
+	row, err := report(db, tCW, endTCW, store)
 	if err != nil {
 		return nil, err
 	}
-	ncr := &newCardHolderRigistration{}
-	ncr.dataRow = row
-	ncr.year = t.Year()
-	ncr.cw = cw
+
+	ncr := &newCardHolderRigistration{
+		row, t.Year(), cw,
+	}
 	return ncr, nil
+}
+
+func reportWapper(db *sql.DB, start time.Time, end time.Time, store string) (*dataRow, error) {
+	dblist := getDatabase(start, end)
+	for sqlitedb := range dblist {
+		log.Println(sqlitedb)
+	}
+	return nil, nil
+}
+
+func getDatabase(start, end time.Time) []*sql.DB {
+	return nil
 }
 
 func report(db *sql.DB, start time.Time, end time.Time, store string) (*dataRow, error) {
