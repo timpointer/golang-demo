@@ -9,8 +9,11 @@ import (
 
 func main() {
 	// Date
-	t := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	t := time.Date(2009, time.November, 10, 23, 3, 6, 2, time.UTC)
 	fmt.Printf("Go launched at %s\n", t.Local())
+	tu := time.Unix(t.Unix(), 0)
+	fmt.Printf("unix %v", tu)
+	//
 
 	// Duration
 	t0 := time.Now()

@@ -8,7 +8,6 @@ import (
 
 	"flag"
 
-	randomdata "github.com/Pallinder/go-randomdata"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -56,14 +55,7 @@ func main() {
 	switch *command {
 	case "insert":
 		log.Println("insert db")
-
-		for i := 0; i < 1000; i++ {
-			_, err := insert(db, 1, randomdata.SillyName(), chooseStore(), chooseChannel(), chooseCardholder(), chooseActivity(), chooseTime())
-			if err != nil {
-				log.Printf("insert: %s\n", err)
-				return
-			}
-		}
+		insertDumpData(db)
 	case "report":
 		report(db, start, end, *store)
 	case "reportytd":
@@ -71,11 +63,6 @@ func main() {
 	case "reportcw":
 		reportCW(db, 1, *store)
 	}
-}
-
-func insert(db *sql.DB, userid int, name, storepanel, channel, cardholder, campaign string, data int64) (sql.Result, error) {
-	return db.Exec("INSERT INTO user_registration  (userid ,name  ,storepanel  ,channel ,cardholder ,campaign  ,date  )VALUES (?,?,?,?,?,?,?);",
-		userid, name, storepanel, channel, cardholder, campaign, data)
 }
 
 var stores []string

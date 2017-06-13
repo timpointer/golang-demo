@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"fmt"
+
 	ttime "github.com/timpointer/golang-demo/time"
 )
 
@@ -43,15 +45,28 @@ func reportCW(db *sql.DB, cw int, store string) (*newCardHolderRigistration, err
 }
 
 func reportWapper(db *sql.DB, start time.Time, end time.Time, store string) (*dataRow, error) {
-	dblist := getDatabase(start, end)
+	dblist, err := getDatabase(start, end)
+	if err != nil {
+		return nil, err
+	}
 	for sqlitedb := range dblist {
 		log.Println(sqlitedb)
 	}
 	return nil, nil
 }
 
-func getDatabase(start, end time.Time) []*sql.DB {
-	return nil
+func getDatabase(start, end time.Time) ([]*sql.DB, error) {
+	dbList := []*sql.DB{}
+	connDataList := ttime.GetListMonth(start, end)
+	for _, connData := range connDataList {
+		connStr := fmt.Sprintf("./data/metroreport%s.db?cache=shared&mode=rwc", connData)
+		db, err := getReadDB(connStr)
+		if err != nil {
+			return nil, fmt.Errorf("open %s:%v", connStr, err)
+		}
+		dbList = append(dbList, db)
+	}
+	return dbList, nil
 }
 
 func report(db *sql.DB, start time.Time, end time.Time, store string) (*dataRow, error) {
