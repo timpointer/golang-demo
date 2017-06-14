@@ -57,17 +57,23 @@ func collectionReportData(db *sql.DB, start, end time.Time) error {
 					if err != nil {
 						return fmt.Errorf("select count:%v", err)
 					}
-					data := &dataRigistrationCount{
-						"201405",
-						store,
-						channel,
-						cardholder,
-						campaign,
-						count,
-					}
-					_, err = insertCount(dbw, data)
-					if err != nil {
-						return fmt.Errorf("insert count:%v", err)
+					tstart := time.Date(2017, 10, 10, 23, 0, 0, 0, time.UTC)
+					tend := time.Date(2017, 11, 10, 23, 0, 0, 0, time.UTC)
+					days := ttime.GetListDay(tstart, tend)
+					for _, day := range days {
+
+						data := &dataRigistrationCount{
+							day,
+							store,
+							channel,
+							cardholder,
+							campaign,
+							count,
+						}
+						_, err = insertCount(dbw, data)
+						if err != nil {
+							return fmt.Errorf("insert count:%v", err)
+						}
 					}
 					fmt.Println(count)
 				}

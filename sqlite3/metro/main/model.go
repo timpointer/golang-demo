@@ -13,10 +13,10 @@ type dataRow struct {
 }
 
 type dataRigistrationCount struct {
-	Date       string
-	Store      string
-	Channel    string
-	Cardholder string
-	Campaign   string
-	Count      int
+	Date       string `json:"date"`
+	Store      string `json:"store"`
+	Channel    string `json:"channel"`
+	Cardholder string `json:"cardholder"`
+	Campaign   string `json:"campaign"`
+	Count      int    `json:"count"`
 }

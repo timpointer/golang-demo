@@ -32,6 +32,16 @@ func GetListMonth(start, end time.Time) []string {
 	return list
 }
 
+// GetListDay get a array of time string ex (20140201)
+func GetListDay(start, end time.Time) []string {
+	list := []string{}
+	includeEnd := end.AddDate(0, 0, 1)
+	for time := start; time.Before(includeEnd); time = time.AddDate(0, 0, 1) {
+		list = append(list, fmt.Sprintf("%04d%02d%02d", time.Year(), time.Month(), time.Day()))
+	}
+	return list
+}
+
 // GetYearMonth get a year and month of time
 func GetYearMonth(t time.Time) string {
 	return fmt.Sprintf("%04d%02d", t.Year(), t.Month())
