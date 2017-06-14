@@ -10,18 +10,6 @@ import (
 	ttime "github.com/timpointer/golang-demo/time"
 )
 
-type newCardHolderRigistration struct {
-	*dataRow
-	cw   int
-	year int
-}
-
-type dataRow struct {
-	currentYear  int
-	delta        int
-	percentDelta int
-}
-
 func reportYTD(db *sql.DB, store string) (*dataRow, error) {
 	t := time.Now()
 	t.Year()
@@ -69,27 +57,31 @@ func getDatabase(start, end time.Time) ([]*sql.DB, error) {
 	return dbList, nil
 }
 
+func reportURC(db *sql.DB, start, end string, store string) ([]*dataRigistrationCount, error) {
+	return queryURC(db, start, end, store)
+}
+
 func report(db *sql.DB, start time.Time, end time.Time, store string) (*dataRow, error) {
 	row := &dataRow{}
-	count, err := querycount(db, start, end, store)
+	count, err := querycount(db, start, end, store, "", "", "")
 	if err != nil {
 		return nil, err
 	}
-	row.currentYear = count
+	row.CurrentYear = count
 	log.Println("count", count)
 
 	lastyearstart := start.AddDate(-1, 0, 0)
 	lastyearend := end.AddDate(-1, 0, 0)
 
-	lastyearcount, err := querycount(db, lastyearstart, lastyearend, store)
+	lastyearcount, err := querycount(db, lastyearstart, lastyearend, store, "", "", "")
 	if err != nil {
 		return nil, err
 	}
 	delta := calDelta(count, lastyearcount)
-	row.delta = delta
+	row.Delta = delta
 	log.Println("delta", delta)
 	percent := calPercent(count, lastyearcount)
-	row.percentDelta = percent
+	row.PercentDelta = percent
 	log.Println("percent", percent)
 	return row, nil
 }
@@ -100,13 +92,4 @@ func calDelta(thisyear, lastyear int) int {
 
 func calPercent(thisyear, lastyear int) int {
 	return (thisyear - lastyear) * 100 / thisyear
-}
-
-func querycount(db *sql.DB, start time.Time, end time.Time, store string) (int, error) {
-	var count int
-	err := db.QueryRow("select count(userid) from user_registration where date BETWEEN ?  and ? and channel = 'ali'", start.Unix(), end.Unix()).Scan(&count)
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
 }

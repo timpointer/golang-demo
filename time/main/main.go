@@ -38,6 +38,14 @@ func main() {
 	year, week := t.ISOWeek()
 	fmt.Printf("year %d week %d\n", year, week)
 
+	// shortForm
+	const shortForm2 = "20060102"
+	t, err := time.Parse(shortForm2, "20133203")
+	if err != nil {
+		fmt.Printf("error:%v\n", err)
+	}
+	fmt.Println("shortform2:", t)
+
 	t = ttime.FirstDayOfISOWeek(2017, 2, time.UTC)
 	fmt.Println(t)
 

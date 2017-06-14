@@ -2,11 +2,14 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"math/rand"
 	"time"
 
 	"flag"
+
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -18,11 +21,11 @@ const (
 func main() {
 	command := flag.String("command", "default", "choose which command do you want to execute")
 	store := flag.String("store", "shanghai", "store params")
-	starttime := flag.String("starttime", "2017-1-3", "starttime params")
-	endtime := flag.String("endtime", "2017-2-3", "endtime params")
+	starttime := flag.String("starttime", "20140113", "starttime params")
+	endtime := flag.String("endtime", "20170223", "endtime params")
 	flag.Parse()
 
-	const shortForm = "2006-1-2"
+	const shortForm = "20060102"
 	start, err := time.Parse(shortForm, *starttime)
 	log.Printf("starttime %d\n", start.Unix())
 	if err != nil {
@@ -41,7 +44,7 @@ func main() {
 	}
 	//init database tables
 	sqlStmts := []string{
-		"create table if not exists user_registration (userid  INTEGER,name  TEXT,storepanel  TEXT,channel  TEXT,cardholder  TEXT,campaign  TEXT,date  INTEGER);",
+		"create table if not exists user_registration (userid  INTEGER,name  TEXT,store  TEXT,channel  TEXT,cardholder  TEXT,campaign  TEXT,date  INTEGER);",
 	}
 	for _, sqlStmt := range sqlStmts {
 		_, err := db.Exec(sqlStmt)
@@ -55,9 +58,32 @@ func main() {
 	switch *command {
 	case "insert":
 		log.Println("insert db")
+		// insert dump data to sqlite
 		insertDumpData(db)
+	case "collectiondata":
+		// collection data from sqlite
+		err := collectionReportData(db, start, end)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
 	case "report":
 		report(db, start, end, *store)
+	case "reportURC":
+		// get report for user new registration
+		log.Println("reportURC")
+		rows, err := reportURC(db, *starttime, *endtime, *store)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		data, err := json.Marshal(rows)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		fmt.Print(string(data))
 	case "reportytd":
 		reportYTD(db, *store)
 	case "reportcw":

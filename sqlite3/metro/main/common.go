@@ -12,7 +12,7 @@ func getWriteDB(sqliteConnStr string) (*sql.DB, error) {
 	}
 	//init database tables
 	sqlStmts := []string{
-		"create table if not exists user_registration (userid  INTEGER,name  TEXT,storepanel  TEXT,channel  TEXT,cardholder  TEXT,campaign  TEXT,date  INTEGER);",
+		"create table if not exists user_registration_count (date  TEXT,store  TEXT,channel  TEXT,cardholder  TEXT,campaign  TEXT,count  INTEGER);",
 	}
 	for _, sqlStmt := range sqlStmts {
 		_, err := db.Exec(sqlStmt)
