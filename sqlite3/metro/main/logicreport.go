@@ -10,18 +10,18 @@ import (
 	ttime "github.com/timpointer/golang-demo/time"
 )
 
-func reportYTD(db *sql.DB, store string) (*dataRow, error) {
+func reportYTD(db *sql.DB) (*dataRow, error) {
 	t := time.Now()
 	t.Year()
 	firstDayOfYear := time.Date(t.Year(), 0, 0, 0, 0, 0, 0, time.UTC)
-	return report(db, firstDayOfYear, t, store)
+	return report(db, firstDayOfYear, t)
 }
 
-func reportCW(db *sql.DB, cw int, store string) (*newCardHolderRigistration, error) {
+func reportCW(db *sql.DB, cw int) (*newCardHolderRigistration, error) {
 	t := time.Now()
 	tCW := ttime.FirstDayOfISOWeek(t.Year(), cw, time.UTC)
 	endTCW := tCW.AddDate(0, 0, 7)
-	row, err := report(db, tCW, endTCW, store)
+	row, err := report(db, tCW, endTCW)
 	if err != nil {
 		return nil, err
 	}
@@ -57,13 +57,20 @@ func getDatabase(start, end time.Time) ([]*sql.DB, error) {
 	return dbList, nil
 }
 
-func reportURC(db *sql.DB, start, end string, store string) ([]*dataRigistrationCount, error) {
-	return queryURC(db, start, end, store)
+func reportURCCW(db *sql.DB, week int) ([]*dataRigistrationCount, error) {
+	day := ttime.FirstDayOfISOWeek(t.Year(), week, time.UTC)
+	start := ttime.GetYearMonthDay(day)
+	end := ttime.GetYearMonthDay(day.AddDate(0, 0, 6))
+	return queryURC(db, start, end)
 }
 
-func report(db *sql.DB, start time.Time, end time.Time, store string) (*dataRow, error) {
+func reportURC(db *sql.DB, start, end string) ([]*dataRigistrationCount, error) {
+	return queryURC(db, start, end)
+}
+
+func report(db *sql.DB, start time.Time, end time.Time) (*dataRow, error) {
 	row := &dataRow{}
-	count, err := querycount(db, start, end, store, "", "", "")
+	count, err := querycount(db, start, end, "", "", "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +80,7 @@ func report(db *sql.DB, start time.Time, end time.Time, store string) (*dataRow,
 	lastyearstart := start.AddDate(-1, 0, 0)
 	lastyearend := end.AddDate(-1, 0, 0)
 
-	lastyearcount, err := querycount(db, lastyearstart, lastyearend, store, "", "", "")
+	lastyearcount, err := querycount(db, lastyearstart, lastyearend, "", "", "", "")
 	if err != nil {
 		return nil, err
 	}

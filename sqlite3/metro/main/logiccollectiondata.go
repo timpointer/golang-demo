@@ -7,23 +7,26 @@ import (
 
 	"fmt"
 
-	"sort"
-
 	randomdata "github.com/Pallinder/go-randomdata"
 	ttime "github.com/timpointer/golang-demo/time"
 )
 
-func insertDumpData(db *sql.DB) error {
-	times := Int64Slice(make([]int64, 1000))
-	for i := 0; i < len(times); i++ {
+func insertDumpData() error {
+	db, err := getWriteDB(sqliteConnStr)
+	if err != nil {
+		return fmt.Errorf("open db fialed:%v", err)
+	}
+	defer db.Close()
+	times := Int64Slice(make([]int64, 100))
+	leng := len(times)
+	for i := 0; i < leng; i++ {
 		times = append(times, chooseTime())
 	}
-	sort.Sort(times)
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < leng; i++ {
 		_, err := insert(db, 1, randomdata.SillyName(), chooseStore(), chooseChannel(), chooseCardholder(), chooseActivity(), chooseTime())
 		if err != nil {
-			return fmt.Errorf("inser: %v", err)
+			return fmt.Errorf("insert: %v", err)
 		}
 	}
 	return nil
@@ -47,7 +50,7 @@ func collectionReportData(db *sql.DB, start, end time.Time) error {
 	if err != nil {
 		return fmt.Errorf("open write database failed; %v", err)
 	}
-
+	defer dbw.Close()
 	log.Println(maps)
 	for _, store := range maps["store"] {
 		for _, channel := range maps["channel"] {
@@ -57,18 +60,20 @@ func collectionReportData(db *sql.DB, start, end time.Time) error {
 					if err != nil {
 						return fmt.Errorf("select count:%v", err)
 					}
-					tstart := time.Date(2017, 10, 10, 23, 0, 0, 0, time.UTC)
-					tend := time.Date(2017, 11, 10, 23, 0, 0, 0, time.UTC)
+					tstart := time.Date(2015, 5, 10, 23, 0, 0, 0, time.UTC)
+					tend := time.Date(2017, 5, 10, 23, 0, 0, 0, time.UTC)
 					days := ttime.GetListDay(tstart, tend)
 					for _, day := range days {
 
 						data := &dataRigistrationCount{
+							dataOption{
+								store,
+								channel,
+								cardholder,
+								campaign,
+								count,
+							},
 							day,
-							store,
-							channel,
-							cardholder,
-							campaign,
-							count,
 						}
 						_, err = insertCount(dbw, data)
 						if err != nil {

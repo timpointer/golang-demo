@@ -12,11 +12,20 @@ type dataRow struct {
 	PercentDelta int
 }
 
-type dataRigistrationCount struct {
-	Date       string `json:"date"`
+type dataOption struct {
 	Store      string `json:"store"`
 	Channel    string `json:"channel"`
 	Cardholder string `json:"cardholder"`
 	Campaign   string `json:"campaign"`
 	Count      int    `json:"count"`
+}
+
+type dataRigistrationCount struct {
+	dataOption
+	Date string `json:"date"`
+}
+
+type dataRigistrationCWCount struct {
+	dataOption
+	DateCW string `json:"datecw"`
 }

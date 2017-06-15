@@ -7,105 +7,97 @@ import (
 	"html/template"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"time"
 
-	"flag"
-
 	"fmt"
+
+	"net/url"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
+	shortForm     = "20060102"
 	sqliteConnStr = "./data/metroreport.db?cache=shared&mode=rwc"
 )
 
 type Config struct {
-	starttime string
-	endtime   string
-	store     string
-	db        *sql.DB
-	start     *time.Time
-	end       *time.Time
-	command   string
+	db *sql.DB
 }
 
 var config *Config
 
 func init() {
 	config = &Config{}
-	config.start = &time.Time{}
-	config.end = &time.Time{}
+	var err error
+	config.db, err = getWriteDB(sqliteConnStr)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
-	flag.StringVar(&config.command, "command", "default", "choose which command do you want to execute")
-	flag.StringVar(&config.store, "store", "shanghai", "store params")
-	flag.StringVar(&config.starttime, "starttime", "20170113", "starttime params")
-	flag.StringVar(&config.endtime, "endtime", "20170223", "endtime params")
-	flag.Parse()
-
-	const shortForm = "20060102"
-	start, err := time.Parse(shortForm, config.starttime)
-	log.Printf("starttime %d\n", start.Unix())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	*config.end, err = time.Parse(shortForm, config.endtime)
-	log.Printf("endtime %d\n", config.end.Unix())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	config.db, err = sql.Open("sqlite3", sqliteConnStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//init database tables
-	sqlStmts := []string{
-		"create table if not exists user_registration (userid  INTEGER,name  TEXT,store  TEXT,channel  TEXT,cardholder  TEXT,campaign  TEXT,date  INTEGER);",
-	}
-	for _, sqlStmt := range sqlStmts {
-		_, err := config.db.Exec(sqlStmt)
-		if err != nil {
-			log.Printf("%q: %s\n", err, sqlStmt)
-			return
-		}
-	}
-
-	if len(os.Args) > 1 && os.Args[1] == "web" {
-		//!+http
-		handler := func(w http.ResponseWriter, r *http.Request) {
-			route(config)
-		}
-		http.HandleFunc("/", handler)
-		//!-http
-		log.Fatal(http.ListenAndServe("localhost:8000", nil))
-		return
-	}
-
-	route(config)
+	values := parseQuery()
+	route(config, values)
 }
 
-func route(config *Config) {
-	log.Println("command", config.command)
-	switch config.command {
+func parseQuery() url.Values {
+	values := url.Values{}
+	if len(os.Args) > 0 {
+		query := os.Args[1]
+		var err error
+		values, err = url.ParseQuery(query)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return values
+}
+
+func parseTime(timestr string) (time.Time, error) {
+	return time.Parse(shortForm, timestr)
+}
+
+func route(config *Config, values url.Values) {
+	command := values.Get("command")
+	log.Println("command", command)
+	switch command {
 	case "insert":
 		// insert dump data to sqlite
-		insertDumpData(config.db)
+		err := insertDumpData()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
 	case "collectiondata":
 		// collection data from sqlite
-		err := collectionReportData(config.db, *config.start, *config.end)
+		starttime, endtime := t, t
+		start := values.Get("start")
+		if start != "" {
+			var err error
+			starttime, err = parseTime(start)
+			if err != nil {
+				log.Fatalf("parseTime start %v", err)
+				return
+			}
+		}
+		end := values.Get("end")
+		if end != "" {
+			var err error
+			endtime, err = parseTime(end)
+			if err != nil {
+				log.Fatalf("parseTime end %v", err)
+				return
+			}
+		}
+
+		err := collectionReportData(config.db, starttime, endtime)
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
 
-	case "report":
-		report(config.db, *config.start, *config.end, config.store)
 	case "reporttemplate":
 		tmpl := template.Must(template.ParseFiles("./template/metro.html"))
 		buf := &bytes.Buffer{}
@@ -114,24 +106,41 @@ func route(config *Config) {
 			log.Fatal(err)
 		}
 		fmt.Print(buf)
-	case "reportURC":
-		// get report for user new registration
-		log.Println("reportURC")
-		rows, err := reportURC(config.db, config.starttime, config.endtime, config.store)
+	case "reportURCCW":
+		rows, err := reportURCCW(config.db, 1)
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
+
 		data, err := json.Marshal(rows)
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
 		fmt.Print(string(data))
+
+	case "reportURC":
+		// get report for user new registration
+		rows, err := reportURC(config.db, "", "")
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		data, err := json.Marshal(rows)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		fmt.Print(string(data))
+	// deprecated
+	case "report":
+		report(config.db, t, t)
 	case "reportytd":
-		reportYTD(config.db, config.store)
+		reportYTD(config.db)
 	case "reportcw":
-		reportCW(config.db, 1, config.store)
+		reportCW(config.db, 1)
 	}
 
 }
@@ -143,10 +152,10 @@ var activites []string
 var t time.Time
 
 func init() {
-	stores = []string{"shanghai", "beijing", "hangzhou"}
-	channels = []string{"local", "web", "wechat", "ali"}
-	cardholders = []string{"MP", "NMP"}
-	activites = []string{"activity1", "activity2", "activity3", "activity4"}
+	stores = []string{"shanghai", "beijing", "hangzhou", "default"}
+	channels = []string{"local", "web", "wechat", "ali", "default"}
+	cardholders = []string{"MP", "NMP", "default"}
+	activites = []string{"activity1", "activity2", "activity3", "activity4", "default"}
 	t = time.Now()
 	rand.Seed(42) // Try changing this number!
 }
@@ -169,6 +178,5 @@ func chooseActivity() string {
 
 func chooseTime() int64 {
 	nt := t.AddDate(0, 0, rand.Intn(1000)-1000)
-	log.Println(nt)
 	return nt.Unix()
 }

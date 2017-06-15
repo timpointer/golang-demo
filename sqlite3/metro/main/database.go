@@ -30,12 +30,13 @@ func querycount(db *sql.DB, start time.Time, end time.Time, store, channel, camp
 	return count, nil
 }
 
-func queryURC(db *sql.DB, start, end string, store string) ([]*dataRigistrationCount, error) {
+func queryURC(db *sql.DB, start, end string) ([]*dataRigistrationCount, error) {
 	datarows := []*dataRigistrationCount{}
 	rows, err := db.Query("select date, channel,campaign,cardholder,store,count from user_registration_count where date BETWEEN ? and ?", start, end)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		row := &dataRigistrationCount{}
 		if err := rows.Scan(&row.Date, &row.Channel, &row.Campaign, &row.Cardholder, &row.Store, &row.Count); err != nil {
@@ -43,7 +44,6 @@ func queryURC(db *sql.DB, start, end string, store string) ([]*dataRigistrationC
 		}
 		datarows = append(datarows, row)
 	}
-	rows.Close()
 	return datarows, nil
 }
 

@@ -46,3 +46,8 @@ func GetListDay(start, end time.Time) []string {
 func GetYearMonth(t time.Time) string {
 	return fmt.Sprintf("%04d%02d", t.Year(), t.Month())
 }
+
+// GetYearMonthDay get a year ,month and day of time
+func GetYearMonthDay(t time.Time) string {
+	return fmt.Sprintf("%04d%02d%02d", t.Year(), t.Month(), t.Day())
+}
