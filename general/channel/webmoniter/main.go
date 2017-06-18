@@ -1,11 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
+	"os/exec"
+	"path"
+	"time"
 
 	"github.com/robfig/cron"
 )
@@ -32,6 +37,7 @@ func main() {
 	go db.collectionStatus(msg)
 	http.HandleFunc("/list", db.list)
 	http.HandleFunc("/entries", db.entries)
+	http.HandleFunc("/execute", db.execute)
 	http.HandleFunc("/task", db.task)
 	fmt.Println("server start")
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
@@ -41,11 +47,57 @@ type status struct {
 	id       string
 	progress int
 	state    string
+	last     string
 }
 
 //!-main
-type database map[string]status
+type database map[string]*status
 
+func (db database) execute(w http.ResponseWriter, req *http.Request) {
+	query := req.URL.Query()
+	command := query.Get("exe")
+	command = path.Join(".", "bin", command)
+	log.Printf("[INFO] - Module:[report] -> command execute: %s param: %s", command, query.Encode())
+
+	go func() {
+		t := time.Now()
+		cmd := exec.Command(command)
+		stdout, err := cmd.StdoutPipe()
+		stderr, err := cmd.StderrPipe()
+		err = cmd.Start()
+		var stat = &status{}
+		defer func() {
+			if err != nil {
+				log.Println("[ERR] - Module:[report] -> :", err)
+				stat.id = command
+				stat.state = command
+			} else {
+				stat.id = command
+				stat.progress = 100
+				stat.state = command
+			}
+			stat.last = time.Since(t).String()
+			db[command] = stat
+		}()
+		if err != nil {
+			return
+		}
+		input := bufio.NewScanner(stdout)
+		for input.Scan() {
+			stat.state = input.Text()
+			db[command] = stat
+		}
+
+		errContent, err := ioutil.ReadAll(stderr)
+		if err != nil {
+			return
+		}
+		if err = cmd.Wait(); err != nil {
+			err = fmt.Errorf(" %v: %s", err, errContent)
+			return
+		}
+	}()
+}
 func (db database) entries(w http.ResponseWriter, req *http.Request) {
 	entries := cronrunner.Entries()
 	data := struct {
@@ -94,7 +146,7 @@ func (db database) task(w http.ResponseWriter, req *http.Request) {
 func (db database) collectionStatus(in <-chan status) {
 	for {
 		status := <-in
-		db[status.id] = status
+		db[status.id] = &status
 	}
 }
 func (db database) printStatus() {
