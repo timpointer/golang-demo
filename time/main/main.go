@@ -8,6 +8,8 @@ import (
 )
 
 func main() {
+	oldtime := time.Time{}
+	fmt.Println("time.Time{}", oldtime)
 	// Date
 	t := time.Date(2009, time.November, 10, 23, 3, 6, 2, time.UTC)
 	fmt.Printf("Go launched at %s\n", t.Local())
