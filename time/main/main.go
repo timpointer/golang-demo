@@ -10,6 +10,7 @@ import (
 func main() {
 	oldtime := time.Time{}
 	fmt.Println("time.Time{}", oldtime)
+	fmt.Println(time.Now().Format("20060102"))
 	// Date
 	t := time.Date(2009, time.November, 10, 23, 3, 6, 2, time.UTC)
 	fmt.Printf("Go launched at %s\n", t.Local())
@@ -28,7 +29,7 @@ func main() {
 	if month == time.November && day == 10 {
 		fmt.Println("Happy Go day!")
 	}
-
+	fmt.Println("**********************")
 	// Parse
 	const longForm = "Jan 2, 2006 at 3:04pm (MST)"
 	t, _ = time.Parse(longForm, "Feb 3, 2013 at 7:54pm (PST)")
@@ -40,6 +41,7 @@ func main() {
 	year, week := t.ISOWeek()
 	fmt.Printf("year %d week %d\n", year, week)
 
+	fmt.Println("*****************************")
 	// shortForm
 	const shortForm2 = "20060102"
 	t, err := time.Parse(shortForm2, "20133203")

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 )
 
 func main() {
@@ -17,4 +18,9 @@ func main() {
 		}
 	}
 	fmt.Println(values.Encode())
+
+	s := ""
+	sl := strings.Split(s, "_")
+	fmt.Println("sl len ", len(sl))
+	fmt.Println(sl[0])
 }
