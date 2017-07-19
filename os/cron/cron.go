@@ -2,6 +2,7 @@ package cron
 
 type Cron struct {
 	entries []*Entry
+	add     chan *Entry
 }
 
 type Job interface {
@@ -15,15 +16,13 @@ type Entry struct {
 func New() *Cron {
 	return &Cron{
 		entries: nil,
+		add:     make(chan *Entry),
 	}
 }
 
-func (c *Cron) AddJob(spec string, cmd Job) error {
-
-}
-
-func (c *Cron) Schedule(schedule Schedule, cmd Job) {
+func (c *Cron) AddJob(spec string, cmd Job) {
 	entry := &Entry{
 		Job: cmd,
 	}
+	c.add <- entry
 }
