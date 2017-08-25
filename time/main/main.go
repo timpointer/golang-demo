@@ -8,11 +8,18 @@ import (
 )
 
 func main() {
+	Date := "20170203"
+	Time := "170203"
+	datetime := Date + Time
+	t, _ := time.Parse("20060102150405", datetime)
+	fmt.Println(t)
+	fmt.Println(t.Format("2006年1月2日 15:04"))
+
 	oldtime := time.Time{}
 	fmt.Println("time.Time{}", oldtime)
 	fmt.Println(time.Now().Format("20060102"))
 	// Date
-	t := time.Date(2009, time.November, 10, 23, 3, 6, 2, time.UTC)
+	t = time.Date(2009, time.November, 10, 23, 3, 6, 2, time.UTC)
 	fmt.Printf("Go launched at %s\n", t.Local())
 	tu := time.Unix(t.Unix(), 0)
 	fmt.Printf("unix %v", tu)
