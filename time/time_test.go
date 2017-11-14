@@ -1,10 +1,15 @@
 package time
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
 )
+
+func TestFormat(t *testing.T) {
+	fmt.Println(time.Now().Format("Jan 2 2006 at 3:04pm (MST)"))
+}
 
 func TestGetListMonth(t *testing.T) {
 	type args struct {

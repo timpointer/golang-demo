@@ -8,16 +8,26 @@ import (
 )
 
 func main() {
+	fmt.Println(time.Now().Format("Jan 2, 2006 at 3:04pm (MST)"))
+	timestamp := time.Unix(0, 0)
+	fmt.Println("timestamp", timestamp)
+	fmt.Println("timestamp is zero", timestamp.IsZero())
+	timestamp2 := time.Time{}
+	fmt.Println("timestamp2", timestamp2)
+	fmt.Println("timestamp2 is zero", timestamp2.IsZero())
+	date := time.Date(2016, 1, 0, 0, 0, 0, 0, time.Local)
+	fmt.Println("date", date)
 	Date := "20170203"
 	Time := "170203"
 	datetime := Date + Time
 	t, _ := time.Parse("20060102150405", datetime)
-	fmt.Println(t)
-	fmt.Println(t.Format("2006年1月2日 15:04"))
+	fmt.Println("timestamp3", t)
+	fmt.Println("timestamp3", t.Format("2006年1月2日 15:04"))
 
 	oldtime := time.Time{}
 	fmt.Println("time.Time{}", oldtime)
-	fmt.Println(time.Now().Format("20060102"))
+	fmt.Println("timestamp4", time.Now().Format("20060102"))
+	fmt.Println("timestamp4", time.Now().Add(-time.Hour*8).Format("20060102"))
 	// Date
 	t = time.Date(2009, time.November, 10, 23, 3, 6, 2, time.UTC)
 	fmt.Printf("Go launched at %s\n", t.Local())
