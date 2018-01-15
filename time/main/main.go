@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	fmt.Println(time.Now())
 	fmt.Println(time.Now().Format("Jan 2, 2006 at 3:04pm (MST)"))
 	timestamp := time.Unix(0, 0)
 	fmt.Println("timestamp", timestamp)
