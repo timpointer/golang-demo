@@ -21,7 +21,7 @@ func main() {
 	})
 
 	log = logrus.New()
-	log.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	hook, err := lSyslog.NewSyslogHook("", "", syslog.LOG_INFO, "")
 
