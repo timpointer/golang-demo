@@ -1,8 +1,6 @@
 package lexer
 
 import (
-	"log"
-
 	"github.com/timpointer/golang-demo/interpreter/monkey/token"
 )
 
@@ -23,8 +21,6 @@ func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
 	l.skipWhitespace()
-
-	log.Println("l.ch" + string(l.ch))
 
 	switch l.ch {
 	case '=':
