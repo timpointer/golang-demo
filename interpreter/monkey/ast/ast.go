@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/timpointer/golang-demo/interpreter/monkey/token"
 )
@@ -64,6 +65,15 @@ func (ls *LetStatement) String() string {
 	return out.String()
 }
 
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (i *Boolean) expressionNode()      {}
+func (i *Boolean) TokenLiteral() string { return i.Token.Literal }
+func (i *Boolean) String() string       { return i.Token.Literal }
+
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -82,6 +92,31 @@ func (i *IntegerLiteral) expressionNode()      {}
 func (i *IntegerLiteral) TokenLiteral() string { return i.Token.Literal }
 func (i *IntegerLiteral) String() string       { return i.Token.Literal }
 
+type FunctionLiteral struct {
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (fl *FunctionLiteral) expressionNode()      {}
+func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
+func (fl *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range fl.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString(fl.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ","))
+	out.WriteString(") ")
+	out.WriteString(fl.Body.String())
+
+	return out.String()
+}
+
 type PrefixExpression struct {
 	Token    token.Token
 	Operator string
@@ -97,6 +132,65 @@ func (pe *PrefixExpression) String() string {
 	out.WriteString(pe.Operator)
 	out.WriteString(pe.Right.String())
 	out.WriteString(")")
+	return out.String()
+}
+
+type InfixExpression struct {
+	Token    token.Token
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (pe *InfixExpression) expressionNode()      {}
+func (pe *InfixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *InfixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(pe.Left.String())
+	out.WriteString(" " + pe.Operator + " ")
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+	return out.String()
+}
+
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (pe *IfExpression) expressionNode()      {}
+func (pe *IfExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *IfExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("if")
+	out.WriteString(pe.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(pe.Consequence.String())
+	if pe.Alternative != nil {
+		out.WriteString("else ")
+		out.WriteString(pe.Alternative.String())
+	}
+
+	return out.String()
+}
+
+type BlockStatement struct {
+	Token      token.Token
+	Statements []Statement
+}
+
+func (rs *BlockStatement) statementNode()       {}
+func (rs *BlockStatement) TokenLiteral() string { return rs.Token.Literal }
+func (rs *BlockStatement) String() string {
+	var out bytes.Buffer
+	for _, s := range rs.Statements {
+		out.WriteString(s.String())
+	}
 	return out.String()
 }
 
