@@ -29,10 +29,13 @@ func main() {
 
 	var opts struct {
 		LogName  string `short:"l" long:"logname" description:"The name of the log to write to" default:"default"`
-		LogLevel string `short:"le" long:"loglevel" description:"The level of the log for debug application" default:"info"`
+		LogLevel string `short:"v" long:"loglevel" description:"The level of the log for debug application" default:"info"`
 	}
 	_, err := flags.Parse(&opts)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("flags.Parse")
 		os.Exit(2)
 	}
 
