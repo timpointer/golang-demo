@@ -27,14 +27,20 @@ import (
 
 func main() {
 
-	log.WithFields(log.Fields{}).Info("log-service start")
 	var opts struct {
-		LogName string `short:"l" long:"logname" description:"The name of the log to write to" default:"default"`
+		LogName  string `short:"l" long:"logname" description:"The name of the log to write to" default:"default"`
+		LogLevel string `short:"le" long:"loglevel" description:"The level of the log for debug application" default:"info"`
 	}
 	_, err := flags.Parse(&opts)
 	if err != nil {
 		os.Exit(2)
 	}
+
+	if opts.LogLevel == "debug" {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	log.WithFields(log.Fields{}).Debug("log-service start")
 
 	// Check if Standard In is coming from a pipe
 	fi, err := os.Stdin.Stat()
@@ -53,7 +59,7 @@ func main() {
 		for s.Scan() {
 			log.WithFields(log.Fields{
 				"Text": s.Text(),
-			}).Info("s.Text()")
+			}).Debug("s.Text()")
 			lines <- s.Text()
 		}
 		if err := s.Err(); err != nil {
