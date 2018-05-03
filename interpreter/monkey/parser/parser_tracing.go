@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+var traceFlag = false
 var traceLevel int = 0
 
 const traceIdentPlaceholder string = "\t"
@@ -21,12 +22,18 @@ func incIdent() { traceLevel = traceLevel + 1 }
 func decIdent() { traceLevel = traceLevel - 1 }
 
 func trace(msg string) string {
+	if traceFlag == false {
+		return ""
+	}
 	incIdent()
 	tracePrint("BEGIN " + msg)
 	return msg
 }
 
 func untrace(msg string) {
+	if traceFlag == false {
+		return
+	}
 	tracePrint("END " + msg)
 	decIdent()
 }
