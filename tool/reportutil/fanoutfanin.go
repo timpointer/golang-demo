@@ -5,21 +5,11 @@ import (
 	"sync"
 )
 
-type PipeFunc func() <-chan interface{}
-
-func (f PipeFunc) Do() <-chan interface{} {
-	return f()
-}
-
-type Pipe interface {
-	Do() <-chan interface{}
-}
-
-func FanOut(worknumber int, pipe Pipe) []<-chan interface{} {
+func FanOut(worknumber int, in <-chan interface{}, pipe Pipe) []<-chan interface{} {
 	fanout := make([]<-chan interface{}, worknumber)
 
 	for i := 0; i < worknumber; i++ {
-		fanout[i] = pipe.Do()
+		fanout[i] = pipe.Do(in)
 	}
 	return fanout
 }

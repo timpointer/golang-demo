@@ -59,15 +59,12 @@ func main() {
 							}
 						}()
 
-						//适配pipe接口
-						f := func(ctx context.Context, in <-chan interface{}) ru.PipeFunc {
-							return func() <-chan interface{} {
-								return ru.Multiply(ctx, ru.Add(ctx, in, "out"))
-							}
-						}(ctx, stream)
+						add := &ru.UtilPipe{Ctx: ctx, Handler: ru.AddHandler{Add: "out"}}
+						multi := &ru.UtilPipe{Ctx: ctx, Handler: ru.MultiplyHandler{}}
 
 						//分配给多个管道执行
-						fanout := ru.FanOut(worknumber, ru.PipeFunc(f))
+						fanout := ru.FanOut(worknumber, stream, ru.PipeBridge(multi, add, add, add))
+
 						//聚合多个管道结果
 						pipeline := ru.FanIn(ctx, fanout...)
 
