@@ -36,19 +36,20 @@ func main() {
 						cli.IntFlag{Name: "worknumber, w", Value: 10},
 					},
 					Action: func(c *cli.Context) error {
-						fmt.Println("yaml ist rad", c.String("lang"), c.Bool("forever"))
 
+						worknumber := c.Int("worknumber") //配置线程数量
 						ctx := context.Background()
 
 						stream := ru.Generator(ctx)
 
-						worknumber := c.Int("worknumber")
-						fanout := make([]<-chan interface{}, worknumber)
+						//适配pipe接口
+						f := func(ctx context.Context, in <-chan interface{}) ru.PipeFunc {
+							return func() <-chan interface{} {
+								return ru.Multiply(ctx, ru.Add(ctx, in, "out"))
+							}
+						}(ctx, stream)
 
-						for i := 0; i < worknumber; i++ {
-							fanout[i] = ru.Multiply(ctx, ru.Add(ctx, stream, "out"))
-						}
-
+						fanout := ru.FanOut(worknumber, ru.PipeFunc(f))
 						pipeline := ru.FanIn(ctx, fanout...)
 						for v := range pipeline {
 							fmt.Println(v)
