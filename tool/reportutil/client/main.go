@@ -41,6 +41,10 @@ func main() {
 						worknumber := c.Int("worknumber") //配置线程数量
 						ctx := context.Background()
 
+						// 执行超过100秒自动取消
+						ctx, cancel := context.WithTimeout(ctx, 100*time.Second)
+						defer cancel()
+
 						// 心跳器
 						heartbeat := ru.NewHeartbeat(time.Second)
 
@@ -51,7 +55,7 @@ func main() {
 						// 检测心跳
 						go func() {
 							for v := range heartbeat.Output() {
-								fmt.Printf("heartbeat:%d\n", v)
+								ru.PrintHeartbeat(v)
 							}
 						}()
 
