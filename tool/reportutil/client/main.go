@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"sort"
 
+	ru "github.com/timpointer/golang-demo/tool/reportutil"
 	"github.com/urfave/cli"
 )
 
@@ -31,15 +33,27 @@ func main() {
 					Name:  "add",
 					Usage: "add",
 					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "lang, l",
-							Value: "english",
-							Usage: "Language for the greeting",
-						},
-						cli.BoolFlag{Name: "forever, forevvarr"},
+						cli.IntFlag{Name: "worknumber, w", Value: 10},
 					},
 					Action: func(c *cli.Context) error {
 						fmt.Println("yaml ist rad", c.String("lang"), c.Bool("forever"))
+
+						ctx := context.Background()
+
+						stream := ru.Generator(ctx)
+
+						worknumber := c.Int("worknumber")
+						fanout := make([]<-chan interface{}, worknumber)
+
+						for i := 0; i < worknumber; i++ {
+							fanout[i] = ru.Multiply(ctx, ru.Add(ctx, stream, "out"))
+						}
+
+						pipeline := ru.FanIn(ctx, fanout...)
+						for v := range pipeline {
+							fmt.Println(v)
+						}
+
 						return nil
 					},
 				},
