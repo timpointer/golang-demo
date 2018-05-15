@@ -5,10 +5,10 @@ import (
 	"fmt"
 )
 
-func PipeBridge(list ...Pipe) PipeFunc {
+func PipeBridge(stream <-chan interface{}, list ...Pipe) PipeFunc {
 	return func(in <-chan interface{}) <-chan interface{} {
 		for _, v := range list {
-			in = v.Do(in)
+			in = v.Do(stream)
 		}
 		return in
 	}
