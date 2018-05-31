@@ -7,20 +7,13 @@ type ListNode struct {
 }
 
 func reverseList(head *ListNode) *ListNode {
-	if head == nil {
-		return nil
+	var pre *ListNode
+	curr := head
+	for curr != nil {
+		tempNext := curr.Next
+		curr.Next = pre
+		pre = curr
+		curr = tempNext
 	}
-	next := head.Next
-	if next != nil {
-		nnext := next.Next
-		if nnext == nil {
-			next.Next = head
-			return head
-		} else {
-			reverseList(next)
-		}
-	} else {
-		return head
-	}
-	return nil
+	return pre
 }

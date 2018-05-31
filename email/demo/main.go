@@ -9,6 +9,7 @@ import (
 func main() {
 
 	m := gomail.NewMessage()
+
 	m.SetHeader("From", "tjing@evolveconsulting.com.hk")
 	m.SetHeader("To", "adong@evolveconsulting.com.hk")
 	m.SetHeader("Subject", "3v报表")

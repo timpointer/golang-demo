@@ -3,12 +3,13 @@ package reportutil
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
-func PipeBridge(stream <-chan interface{}, list ...Pipe) PipeFunc {
+func PipeBridge(list ...Pipe) PipeFunc {
 	return func(in <-chan interface{}) <-chan interface{} {
 		for _, v := range list {
-			in = v.Do(stream)
+			in = v.Do(in)
 		}
 		return in
 	}
@@ -49,6 +50,7 @@ type AddHandler struct {
 }
 
 func (h AddHandler) Handle(in interface{}) interface{} {
+
 	return fmt.Sprintf("%s%s", in, h.Add)
 }
 
@@ -56,6 +58,7 @@ type MultiplyHandler struct {
 }
 
 func (h MultiplyHandler) Handle(in interface{}) interface{} {
+	time.Sleep(time.Second)
 	return fmt.Sprintf("%s%s", in, in)
 }
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -21,22 +20,12 @@ func live() People {
 }
 
 func main() {
-	var stu *Student
-	if stu == nil {
-		fmt.Println("AAAAAAA")
-	} else {
-		fmt.Println("BBBBBBB")
+	if true && print() {
+
 	}
+}
 
-	log.Println(live())
-
-	var p People
-	p = stu
-	if p == nil {
-		fmt.Println("AAAAAAA")
-	} else {
-		fmt.Println("BBBBBBB")
-	}
-
-	log.Println(live())
+func print() bool {
+	log.Println("sdfs")
+	return true
 }

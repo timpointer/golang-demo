@@ -5,6 +5,13 @@ import (
 	"sync"
 )
 
+func FanOutIn(ctx context.Context, worknumber int, in <-chan interface{}, pipe Pipe) <-chan interface{} {
+	fanout := FanOut(worknumber, in, pipe)
+
+	//聚合多个管道结果
+	return FanIn(ctx, fanout...)
+}
+
 func FanOut(worknumber int, in <-chan interface{}, pipe Pipe) []<-chan interface{} {
 	fanout := make([]<-chan interface{}, worknumber)
 

@@ -1,14 +1,34 @@
 package main
 
 import (
+	"encoding/base64"
+	"evolve/evolution/utils"
 	"fmt"
 	"time"
 
 	ttime "github.com/timpointer/golang-demo/time"
 )
 
+const (
+	AES_KEY = "dfgfd798df7g98dfg7dh9d7/+98fdgjh"
+)
+
+func Dencrypt(encryptCode string) (string, error) {
+	bs, err := base64.StdEncoding.DecodeString(encryptCode)
+	if err != nil {
+		return "", err
+	}
+	return utils.AESDecrypt(string(bs), []byte(AES_KEY))
+}
+
+func Encrypt(clearText string) string {
+	return base64.StdEncoding.EncodeToString([]byte(utils.AESEncrypt(clearText, []byte(AES_KEY))))
+}
+
 func main() {
-	fmt.Println(time.Now())
+	//Dencrypt
+	fmt.Println(Encrypt("1000101"))
+	fmt.Println(time.Now().Format(time.RFC1123))
 	fmt.Println(time.Now().Format("Jan 2, 2006 at 3:04pm (MST)"))
 	timestamp := time.Unix(0, 0)
 	fmt.Println("timestamp", timestamp)
@@ -18,6 +38,7 @@ func main() {
 	fmt.Println("timestamp2 is zero", timestamp2.IsZero())
 	date := time.Date(2016, 1, 0, 0, 0, 0, 0, time.Local)
 	fmt.Println("date", date)
+
 	Date := "20170203"
 	Time := "170203"
 	datetime := Date + Time

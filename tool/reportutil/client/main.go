@@ -10,6 +10,7 @@ import (
 
 	ru "github.com/timpointer/golang-demo/tool/reportutil"
 	"github.com/urfave/cli"
+	"golang.org/x/time/rate"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 					Name:  "add",
 					Usage: "add",
 					Flags: []cli.Flag{
-						cli.IntFlag{Name: "worknumber, w", Value: 10},
+						cli.IntFlag{Name: "worknumber, w", Value: 1},
 					},
 					Action: func(c *cli.Context) error {
 
@@ -49,7 +50,12 @@ func main() {
 						heartbeat := ru.NewHeartbeat(time.Second)
 
 						// 生产者
-						var gen ru.Generator = &ru.StdinGenerator{F: os.Stdin, Ctx: ctx, Heartbeat: heartbeat}
+						var gen ru.Generator = &ru.StdinGenerator{
+							F:           os.Stdin,
+							Ctx:         ctx,
+							Heartbeat:   heartbeat,
+							RateLimiter: rate.NewLimiter(rate.Limit(1), 1),
+						}
 						stream := gen.Produce()
 
 						// 检测心跳
@@ -62,11 +68,10 @@ func main() {
 						add := &ru.UtilPipe{Ctx: ctx, Handler: ru.AddHandler{Add: "out"}}
 						multi := &ru.UtilPipe{Ctx: ctx, Handler: ru.MultiplyHandler{}}
 
-						//分配给多个管道执行
-						fanout := ru.FanOut(worknumber, stream, ru.PipeBridge(multi, add, add, add))
+						fmt.Printf("worknumber%d\n", worknumber)
 
-						//聚合多个管道结果
-						pipeline := ru.FanIn(ctx, fanout...)
+						//分配给多个管道执行,聚合多个管道结果
+						pipeline := ru.FanOutIn(ctx, worknumber, stream, ru.PipeBridge(multi, add, add, add))
 
 						//一个管道分叉成两个复制，两个管道同步消费
 						p1, p2 := ru.Tee(ctx, pipeline)

@@ -4,7 +4,10 @@ import (
 	"bufio"
 	"context"
 	"os"
-	"time"
+
+	"golang.org/x/time/rate"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Generator interface {
@@ -12,9 +15,10 @@ type Generator interface {
 }
 
 type StdinGenerator struct {
-	F         *os.File
-	Ctx       context.Context
-	Heartbeat Heartbeat
+	F           *os.File
+	Ctx         context.Context
+	Heartbeat   Heartbeat
+	RateLimiter *rate.Limiter
 }
 
 func (g *StdinGenerator) Produce() <-chan interface{} {
@@ -31,8 +35,12 @@ func (g *StdinGenerator) Produce() <-chan interface{} {
 
 		for scanner.Scan() {
 			text := scanner.Text()
-			time.Sleep(time.Second)
-
+			if err := g.RateLimiter.Wait(g.Ctx); err != nil {
+				log.WithFields(log.Fields{
+					"err": err,
+				}).Error("g.rateLimiter.Wait")
+				return
+			}
 			g.Heartbeat.SendPluse()
 
 			select {
