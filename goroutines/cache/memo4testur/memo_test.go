@@ -1,4 +1,4 @@
-package memo4test
+package memo4testur
 
 import (
 	"fmt"
@@ -22,6 +22,7 @@ var httpGetBodytest = func(url string) (interface{}, error) {
 	}
 
 	int := rand.Intn(100)
+	fmt.Println("int", int)
 	if int < 50 {
 		return nil, fmt.Errorf("url:%s ,%v", url, "internal error")
 	}
