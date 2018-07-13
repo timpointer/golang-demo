@@ -1,7 +1,7 @@
 package memo4test
 
 import (
-	"fmt"
+	"log"
 	"sync"
 )
 
@@ -34,7 +34,7 @@ func (memo *Memo) Get(key string) (value interface{}, err error) {
 	e := memo.cache[key]
 	if e == nil || (e != nil && e.res.err != nil) {
 		if e != nil && e.res.err != nil {
-			fmt.Println("error return ")
+			log.Printf("retry  %v\n", e.res.err)
 		}
 		// This is the first request for this key.
 		// This goroutine becomes responsible for computing

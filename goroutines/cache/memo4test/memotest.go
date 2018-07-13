@@ -1,10 +1,3 @@
-// Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan.
-// License: https://creativecommons.org/licenses/by-nc-sa/4.0/
-
-// See page 272.
-
-// Package memotest provides common functions for
-// testing various designs of the memo package.
 package memo4test
 
 import (
@@ -92,7 +85,7 @@ func Concurrent(t *testing.T, m M) {
 			start := time.Now()
 			value, err := m.Get(url)
 			if err != nil {
-				log.Print(err)
+				fmt.Errorf("%s, %v\n", url, err)
 				return
 			}
 			fmt.Printf("%s, %s, %d bytes\n",

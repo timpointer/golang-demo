@@ -1,15 +1,12 @@
 package memo4test
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"testing"
 	"time"
-
-	"gopl.io/ch9/memo4"
 )
 
 var httpGetBodytest = func(url string) (interface{}, error) {
@@ -26,19 +23,19 @@ var httpGetBodytest = func(url string) (interface{}, error) {
 
 	int := rand.Intn(100)
 	fmt.Println("int", int)
-	if int < 20 {
-		return nil, errors.New("randow error")
+	if int < 50 {
+		return nil, fmt.Errorf("url:%s ,%v", url, "internal error")
 	}
 	return body, nil
 }
 
 func Test(t *testing.T) {
-	m := memo.New(httpGetBodytest)
+	m := New(httpGetBodytest)
 	Sequential(t, m)
 }
 
 func TestConcurrent(t *testing.T) {
-	m := memo.New(httpGetBodytest)
+	m := New(httpGetBodytest)
 	Concurrent(t, m)
 	for index := 0; index < 20; index++ {
 		time.Sleep(time.Second)
